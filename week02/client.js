@@ -1,4 +1,5 @@
 const net = require('net')
+const parser = require('./parser.js')
 class Request {
     constructor(options){
         this.method = options.method || 'GET'
@@ -14,7 +15,7 @@ class Request {
             this.bodyText = JSON.stringify(this.body)
         }
         if (this.headers['Content-Type'] === 'application/x-www-form-urlencoded'){
-            this.bodyText = Object.keys(this.body).map(key => `${key}=${encodeURIComponent(this.body[key])}&`)
+            this.bodyText = Object.keys(this.body).map(key => `${key}=${encodeURIComponent(this.body[key])}`).join('&')
         }
         this.headers['Content-Length'] = this.bodyText.length
     }
@@ -46,10 +47,10 @@ class Request {
         })
     }
     toString(){
-        return `${this.method} ${this.path} HTTP/1.1
-    ${Object.keys(this.headers).map(key => `${key}: ${this.headers[key]}`).join('\r\n')}\r
-    \r
-    ${this.bodyText}`
+        return `${this.method} ${this.path} HTTP/1.1\r
+${Object.keys(this.headers).map(key => `${key}: ${this.headers[key]}`).join('\r\n')}\r
+\r
+${this.bodyText}`
     }
 }
 class ResponseParser{
@@ -102,7 +103,7 @@ class ResponseParser{
                 this.current = this.WAITING_HEADER_SPACE
             } else if(char === '\r') {
                 this.current = this.WAITING_HEADER_BLOCK_END
-                if(this.headers['Transfer-Encoding'] === 'chunk') {
+                if(this.headers['Transfer-Encoding'] === 'chunked') {
                     this.bodyParser = new BodyTrunkParser()
                 }
             } else {
@@ -110,7 +111,7 @@ class ResponseParser{
             }
         } else if (this.current === this.WAITING_HEADER_SPACE) {
             if (char === ' ') {
-                this.current = this.WAITING_HEADER_LINE_VALUE
+                this.current = this.WAITING_HEADER_VALUE
             }
         } else if(this.current === this.WAITING_HEADER_VALUE){
             if(char ==='\r') {
@@ -130,7 +131,7 @@ class ResponseParser{
                 this.current = this.WAITING_BODY
             }
         } else if(this.current === this.WAITING_BODY){
-            this.bodyParser.receive(char)
+            this.bodyParser.receiveChar(char)
         }
     }
 }
@@ -145,11 +146,6 @@ class BodyTrunkParser{
         this.content = []
         this.isFinished = false
         this.current = this.WAITING_LENGTH
-    }
-    receive(){
-        for(let i=0;i<str.length;i++) {
-            this.receiveChar(str.charAt(i))
-        } 
     }
     receiveChar(char){
         if (this.current === this.WAITING_LENGTH){
@@ -167,13 +163,11 @@ class BodyTrunkParser{
                 this.current = this.READING_TRUNK
             }
         } else if(this.current === this.READING_TRUNK){
-            if (char === '\n') {
                 this.content.push(char)
                 this.length--
                 if(this.length === 0){
                     this.current = this.WAITING_NEW_LINE
                 }
-            }
         } else if(this.current === this.WAITING_NEW_LINE){
             if (char === '\r') {
                 this.current = this.WAITING_NEW_LINE_END
@@ -189,7 +183,7 @@ void async function(){
     let request = new Request({
         method: 'POST',
         host: '127.0.0.1',
-        port: '8080',
+        port: '8088',
         path: '/',
         headers: {
             ["x-Foo2"]: "customed"
@@ -199,5 +193,5 @@ void async function(){
         }
     })
     let response = await request.send()
-    console.log(response)
+    parser.parseHTML(response.body)
 }()

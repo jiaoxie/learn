@@ -4,12 +4,21 @@ http.createServer((request, response) => {
     request.on('error', (err) => {
         console.error(err)
     }).on('data', (chunk) => {
-        body.push(chunk.toString())
+        body.push(chunk)
     }).on('end', () => {
         body = Buffer.concat(body).toString()
-        console.log("body:::",body)
         response.writeHead(200, {'Content-Type': 'text/html'})
-        response.end(` Hello World\n`)
+        response.end(`<html meta='aaaa'>
+        <head>
+        </head>
+        <style>
+        div .mm {
+            width: 200px;
+            height: 200px;
+        }
+        </style>
+        <div>hihihihih</div>
+        </html>`)
     })
-}).listen(8080)
+}).listen(8088)
 console.log('server start')
