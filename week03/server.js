@@ -12,12 +12,26 @@ http.createServer((request, response) => {
         <head>
         </head>
         <style>
-        div .mm {
+        div {
             width: 200px;
             height: 200px;
+            display: flex
+        }
+        #one {
+            background-color: rgb(0,0,0)
+            flex:1
+        }
+        .two {
+            background-color: rgb(255,254,255)
         }
         </style>
-        <div>hihihihih</div>
+        <body>
+        <div >
+            <p id="one"></p>
+            <p class="two"></p>
+        </div>
+        </body>
+        
         </html>`)
     })
 }).listen(8088)

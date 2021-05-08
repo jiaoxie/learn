@@ -1,5 +1,7 @@
 const net = require('net')
 const parser = require('./parser.js')
+const images = require('imagse')
+const render = require('./render.js')
 class Request {
     constructor(options){
         this.method = options.method || 'GET'
@@ -193,5 +195,8 @@ void async function(){
         }
     })
     let response = await request.send()
-    parser.parseHTML(response.body)
+    let dom = parser.parseHTML(response.body)
+    let viewport = images(800, 600)
+    render(viewport, dom)
+    viewport.save('viewport.jpg')
 }()
