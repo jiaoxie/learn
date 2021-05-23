@@ -1,0 +1,17 @@
+<script>
+
+    function complieReg(){
+        
+    }
+    function scan(str){
+        /*djjdjd*/
+        let regxp = / |\n|\/\*([^*]|\*[^\/])*\*\/| \/\/[^\n]*/g
+        while(regxp.lastIndex < str.length){
+            let r = regxp.exec(str)
+            console.log(JSON.stringify(r[0]))
+        }
+    }
+    scan(`
+        /*hello world*/
+    `)
+</script>
